@@ -2,9 +2,7 @@ from typing import Optional
 from fastapi import Body, FastAPI, Response, status, HTTPException
 from pydantic import BaseModel
 from random import randrange
-import psycopg2
-from psycopg2.extras import RealDictCursor
-import time
+
 
 app = FastAPI()
 
@@ -14,22 +12,9 @@ class Post(BaseModel):
   title: str
   content: str
   published: bool = True
+  rating: Optional[int] = None
 
 
-
-#postgres database connection
-
-while True:
-  try:
-    conn = psycopg2.connect(host='localhost', database='py_fastapi', user='postgres', password='0000', cursor_factory=RealDictCursor)
-    cursor = conn.cursor()
-    print("Database connection was successful!")
-    break
-
-  except Exception as error:
-    print("connecting to database failed")
-    print("Error:", error)
-    time.sleep(2)
 
 
 my_posts = [
@@ -60,9 +45,7 @@ def root():
 #read: getting all posts
 @app.get("/posts")
 def get_posts():
-  cursor.execute(""" SELECT * FROM posts  """)
-  post = cursor.fetchall()
-  return {"data": post}
+  return {"data": my_posts}
 
 # @app.post("/createposts")
 # def create_posts(payLoad: dict = Body(...)):
@@ -82,13 +65,10 @@ def create_posts(post: Post):
 
 
   #id is not there in Post class so we want to create 
-  cursor.execute(""" INSERT INTO posts(title, content, published) values(%s, %s, %s) returning *""", (post.title, post.content, post.published))
-
-  new_post = cursor.fetchone()
-
-  conn.commit()
-  
-  return {"data": new_post}
+  post_dict = post.model_dump()
+  post_dict['id'] = randrange(0, 100000)
+  my_posts.append(post_dict)
+  return {"data": post_dict}
 
 
 @app.get("/posts/latest")
