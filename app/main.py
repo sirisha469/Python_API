@@ -64,24 +64,10 @@ def get_posts():
   post = cursor.fetchall()
   return {"data": post}
 
-# @app.post("/createposts")
-# def create_posts(payLoad: dict = Body(...)):
-#   #print(payLoad)
-#   return {
-#     "message": "successfully create post", 
-#     "new_post": f"title {payLoad['title']} content {payLoad['content']}"
-#   }
-
 #create: creating posts 
 @app.post("/posts", status_code=status.HTTP_201_CREATED)
 def create_posts(post: Post):
-  # print(post.rating)
-  # print(post)
-  # print(post.model_dump())
-  #model_dump is a dictionary
-
-
-  #id is not there in Post class so we want to create 
+  
   cursor.execute(""" INSERT INTO posts(title, content, published) values(%s, %s, %s) returning *""", (post.title, post.content, post.published))
 
   new_post = cursor.fetchone()
@@ -100,52 +86,43 @@ def get_latest_post():
 
 #read: getting single post based on id
 @app.get("/posts/{id}")
-def get_post(id: int, response: Response): 
-  #id: int it default takes the id as integer no need of explicit conversion
-  print(id)
-  print(type(id)) 
-  #here id is a string but our method wants a integer so convert that string into integer
-  #for this we are creating a method(find_post())
-  #post = find_post(int(id))
+def get_post(id: str): 
+  cursor.execute(""" SELECT * from posts WHERE id = %s """, (id))
+  post = cursor.fetchone()
 
-  post = find_post(id)
   print(post)
   if not post:
     raise HTTPException(status_code= status.HTTP_404_NOT_FOUND,
                         detail=f"post with id: {id} was not found")
   
-    # the above code is used to replace the below 2 lines by using this we can also remove the parameter of the method response: Response
-    # response.status_code = status.HTTP_404_NOT_FOUND
-    # return {"message": f"post with id: {id} was not found"}
   return {"single data": post }
 
 
 #delete: deleting post
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_post(id: int):
-  #find the index in the array that has required ID
-  #my_posts.pop(index)
+def delete_post(id: str):
+  cursor.execute(""" DELETE FROM posts WHERE id = %s returning *""", (id))
+  deleted_post = cursor.fetchone()
+  conn.commit()
 
-  index = find_index_post(id)
-
-  if index == None:
+  if deleted_post == None:
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail = f"post with id: {id} does not exist")
-  my_posts.pop(index)
-  #return {"message": "post successfully deleted"}
+  
   return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 #update post
 @app.put("/posts/{id}")
-def update_post(id: int, post: Post):
-  index = find_index_post(id)
+def update_post(id: str, post: Post):
 
-  if index == None:
+  cursor.execute(""" UPDATE posts SET title=%s , content=%s, published=%s where id = %s returning *""", (post.title, post.content, post.published, id))
+
+  updated_post = cursor.fetchone()
+  conn.commit()
+
+  if updated_post == None:
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail = f"post with id: {id} does not exist")
   
-  post_dict = post.model_dump()
-  post_dict['id'] = id
-  my_posts[index] = post_dict
-  print(post_dict)
-  return {"data": post_dict}
+ 
+  return {"data": updated_post}
   
