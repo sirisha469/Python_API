@@ -1,7 +1,6 @@
 from typing import Optional
-from fastapi import Body, FastAPI, Response, status, HTTPException
+from fastapi import FastAPI, Response, status, HTTPException
 from pydantic import BaseModel
-from random import randrange
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
@@ -31,26 +30,6 @@ while True:
     print("Error:", error)
     time.sleep(2)
 
-
-my_posts = [
-  {"title": "title of post 1", "content": "content of post 1", "id":1},
-  {"title": "favorite food", "content": "I like papidi", "id":2}
-]
-
-
-#getting specified ID
-def find_post(id):
-  for p in my_posts:
-    if p['id'] == id:
-      return p
-    
-
-#getting specified index
-def find_index_post(id):
-  for index, p in enumerate(my_posts):
-    if p['id'] == id:
-      return index
-    
 
 
 @app.get("/")
