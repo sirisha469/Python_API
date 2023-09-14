@@ -24,7 +24,7 @@ except Exception as error:
   print("Error: ", error)
 
 
-
+#create student
 @app.post("/students",status_code=status.HTTP_201_CREATED)
 def cretate_post(stu: student):
 
@@ -36,7 +36,7 @@ def cretate_post(stu: student):
 
   return {"new_student": new_student}
 
-
+#getting all students
 @app.get("/students")
 def get_students():
   cursor.execute(""" SELECT * FROM students""")
@@ -72,7 +72,7 @@ def delete_student(id: str):
   return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
-
+#update student
 @app.put("/students/{id}")
 def update_student(id: str, stu: student):
   cursor.execute(""" update students set name=%s, branch=%s, mobile=%s where id=%s returning * """, (stu.name, stu.branch, stu.mobile, id))
