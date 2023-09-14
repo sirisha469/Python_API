@@ -1,13 +1,27 @@
 from typing import Optional
-from fastapi import FastAPI, Response, status, HTTPException
+from fastapi import FastAPI, Response, status, HTTPException, Depends
 from pydantic import BaseModel
 import psycopg2
 from psycopg2.extras import RealDictCursor
 import time
 
+from . import models
+from .database import engine, SessionLocal
+from sqlalchemy.orm import Session
+
+models.Base.metadata.create_all(bind=engine)
+
 app = FastAPI()
 
-# request get method url: "/"
+# Dependency
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
 
 class Post(BaseModel):
   title: str
@@ -36,6 +50,10 @@ while True:
 def root():
   return {"message": "Hello World!!!"}
 
+@app.get("/sqlalchemy")
+def test_post(db: Session = Depends(get_db)):
+  return {"status": "success"}
+
 #read: getting all posts
 @app.get("/posts")
 def get_posts():
@@ -54,12 +72,6 @@ def create_posts(post: Post):
   conn.commit()
   
   return {"data": new_post}
-
-
-@app.get("/posts/latest")
-def get_latest_post():
-  post = my_posts[len(my_posts)-1]
-  return {"details": post}
 
 
 
