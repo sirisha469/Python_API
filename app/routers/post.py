@@ -1,50 +1,15 @@
-from typing import Optional, List
-from fastapi import FastAPI, Response, status, HTTPException, Depends
-from pydantic import BaseModel
-import psycopg2
-from psycopg2.extras import RealDictCursor
-import time
-
-
-from . import models, schemas, utils
-from .database import engine, get_db
+from fastapi import status, HTTPException, Depends, FastAPI, Response, APIRouter
+from .. import models, schemas
 from sqlalchemy.orm import Session
+from ..database import get_db
+from typing import Optional, List
 
-
-models.Base.metadata.create_all(bind=engine)
-
-app = FastAPI()
-
-
-
-#postgres database connection
-
-while True:
-  try:
-    conn = psycopg2.connect(host='localhost', database='py_fastapi', user='postgres', password='0000', cursor_factory=RealDictCursor)
-    cursor = conn.cursor()
-    print("Database connection was successful!")
-    break
-
-  except Exception as error:
-    print("connecting to database failed")
-    print("Error:", error)
-    time.sleep(2)
-
-
-
-@app.get("/")
-def root():
-  return {"message": "Hello World!!!"}
-
-# @app.get("/sqlalchemy")
-# def test_post(db: Session = Depends(get_db)):
-
-#   posts = db.query(models.Post).all()
-#   return {"data": posts}
+router = APIRouter(
+  prefix="/posts"
+)
 
 #read: getting all posts
-@app.get("/posts", response_model=List[schemas.PostRes])
+@router.get("/", response_model=List[schemas.PostRes])
 def get_posts(db: Session = Depends(get_db)):
   # cursor.execute(""" SELECT * FROM posts  """)
   # post = cursor.fetchall()
@@ -53,7 +18,7 @@ def get_posts(db: Session = Depends(get_db)):
   return posts
 
 #create: creating posts 
-@app.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.PostRes)
+@router.post("/posts", status_code=status.HTTP_201_CREATED, response_model=schemas.PostRes)
 def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
   
   # cursor.execute(""" INSERT INTO posts(title, content, published) values(%s, %s, %s) returning *""", (post.title, post.content, post.published))
@@ -77,7 +42,7 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db)):
 
 
 #read: getting single post based on id
-@app.get("/posts/{id}", response_model=schemas.PostRes)
+@router.get("/{id}", response_model=schemas.PostRes)
 def get_post(id: int, db: Session = Depends(get_db)): 
   # cursor.execute(""" SELECT * from posts WHERE id = %s """, (id))
   # post = cursor.fetchone()
@@ -95,7 +60,7 @@ def get_post(id: int, db: Session = Depends(get_db)):
 
 
 #delete: deleting post
-@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int, db: Session = Depends(get_db)):
   # cursor.execute(""" DELETE FROM posts WHERE id = %s returning *""", (id))
   # deleted_post = cursor.fetchone()
@@ -113,7 +78,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
 
 
 #update post
-@app.put("/posts/{id}", response_model=schemas.PostRes)
+@router.put("/{id}", response_model=schemas.PostRes)
 def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db) ):
 
   # cursor.execute(""" UPDATE posts SET title=%s , content=%s, published=%s where id = %s returning *""", (post.title, post.content, post.published, id))
@@ -135,35 +100,3 @@ def update_post(id: int, post: schemas.PostCreate, db: Session = Depends(get_db)
   return post_query.first()
 
 
-
-
-# users table
-
-@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schemas.UserOut)
-def create_user(user: schemas.UserCreate,db: Session = Depends(get_db)):
-
-  #hash the password - user.password
-  # hashed_password = pwd_context.hash(user.password)
-
-  hashed_password = utils.hash(user.password)
-  user.password = hashed_password
-
-  new_user = models.User(**user.model_dump())
-  db.add(new_user)
-  db.commit()
-  db.refresh(new_user)
-
-  return new_user
-
-
-#getting user by id
-@app.get("/users/{id}", response_model=schemas.UserOut)
-def get_user(id: int, db: Session = Depends(get_db)):
-
-  user = db.query(models.User).filter(models.User.id == id).first()
-
-  if not user:
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, details=f"user with id;{id} does not exists")
-
-  return user
-  
