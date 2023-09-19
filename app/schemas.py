@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
+from typing import Optional
 
 #request
 class PostBase(BaseModel):
@@ -46,3 +47,13 @@ class UserOut(BaseModel):
 class UserLogin(BaseModel):
   email: EmailStr
   password: str
+
+
+#token request
+class Token(BaseModel):
+  access_token: str
+  token_type: str
+
+#token response
+class TokenData(BaseModel):
+  id: Optional[str] = None
