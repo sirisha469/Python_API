@@ -35,17 +35,6 @@ while True:
 
 
 
-@app.get("/")
-def root():
-  return {"message": "Hello World!!!"}
-
-# @app.get("/sqlalchemy")
-# def test_post(db: Session = Depends(get_db)):
-
-#   posts = db.query(models.Post).all()
-#   return {"data": posts}
-
-
 app.include_router(post.router)
 app.include_router(user.router)
 app.include_router(authentication.router)
