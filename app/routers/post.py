@@ -32,7 +32,7 @@ def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db),  curre
 
   # new_post = models.Post(title=post.title, content= post.content, published= post.published)
 
-  print(current_user)
+  print(current_user.email)
 
   new_post = models.Post(**post.model_dump())
   
