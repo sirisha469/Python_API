@@ -17,6 +17,7 @@ class PostCreate(PostBase):
 class PostRes(PostBase):
   id: int
   created_at: datetime
+  owner_id: int
   # title: str
   # content: str
   # published: bool
