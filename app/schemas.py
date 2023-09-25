@@ -12,22 +12,6 @@ class PostBase(BaseModel):
 class PostCreate(PostBase):
   pass
 
-
-#response 
-class PostRes(PostBase):
-  id: int
-  created_at: datetime
-  owner_id: int
-  # title: str
-  # content: str
-  # published: bool
-  # these there are inherited from PostBase class
-
-  class Config:
-    from_attributes = True
-    # orm_mode
-
-
 #request users table
 class UserCreate(BaseModel):
   email: EmailStr
@@ -42,6 +26,21 @@ class UserOut(BaseModel):
 
   class Config:
     from_attributes = True
+
+#response 
+class PostRes(PostBase):
+  id: int
+  created_at: datetime
+  owner_id: int
+  owner: UserOut
+  # title: str
+  # content: str
+  # published: bool
+  # these there are inherited from PostBase class
+
+  class Config:
+    from_attributes = True
+    # orm_mode
 
 
 #authentication
