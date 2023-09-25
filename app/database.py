@@ -4,9 +4,10 @@ from sqlalchemy.orm import sessionmaker
 import time
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from .config import settings
 
 
-SQLALCHEMY_DATABASE_URL = 'postgresql://postgres:0000@localhost/py_fastapi'
+SQLALCHEMY_DATABASE_URL = f'postgresql://{settings.database_username}:{settings.database_password}@{settings.database_hostname}/{settings.database_name}'
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 
