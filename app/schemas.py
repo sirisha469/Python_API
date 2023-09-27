@@ -42,6 +42,13 @@ class PostRes(PostBase):
     from_attributes = True
     # orm_mode
 
+#after joins post output
+class PostOut(PostBase):
+  Post: PostRes
+  votes: int
+  class Config:
+    from_attributes = True
+
 
 #authentication
 class UserLogin(BaseModel):
