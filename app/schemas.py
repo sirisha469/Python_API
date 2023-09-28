@@ -43,7 +43,7 @@ class PostRes(PostBase):
     # orm_mode
 
 #after joins post output
-class PostOut(PostBase):
+class PostOut(BaseModel):
   Post: PostRes
   votes: int
   class Config:
