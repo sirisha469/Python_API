@@ -25,7 +25,7 @@ def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.
   return posts
 
 #create: creating posts 
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostRes)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostOut)
 def create_posts(post: schemas.PostCreate, db: Session = Depends(get_db),  current_user: int = Depends(oauth2.get_current_user)):
   
   # cursor.execute(""" INSERT INTO posts(title, content, published) values(%s, %s, %s) returning *""", (post.title, post.content, post.published))
@@ -112,7 +112,7 @@ def update_post(id: int, updated_post: schemas.PostCreate, db: Session = Depends
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, 
                         detail="Not authorized to perform requested action")
   
-  post_query.update(updated_post.dict(), synchronize_session=False)
+  post_query.update(updated_post.model_dump(), synchronize_session=False)
 
   db.commit()
 
